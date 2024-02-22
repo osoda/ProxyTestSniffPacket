@@ -2,6 +2,7 @@ import socket
 import os
 from threading import Thread
 import parser as parser
+from handlePacket import handlePacket
 
 # Part 9
 # Developing a TCP Network Proxy - Pwn Adventure 3
@@ -16,12 +17,18 @@ class Proxy2Server(Thread):
         self.host = host
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.connect((host, port))
+        self.objHandlePacket = handlePacket()
 
     # run in thread
     def run(self):
         while True:
             data = self.server.recv(4096)
             if data:
+                # dataText = ''.join([chr(int(x, 16)) for x in data.split()])
+                data2 = self.objHandlePacket.send(data, self.server)
+                print "STRING [{}] <- {}".format(self.port, data)
+
+                print "--- [{}] <- {}".format(self.port, data2)
                 print "[{}] <- {}".format(self.port, data[:100].encode('hex'))
                 try:
                     reload(parser)                        
@@ -49,6 +56,7 @@ class Game2Proxy(Thread):
         while True:
             data = self.game.recv(4096)
             if data:
+                print "STRING [{}] -> {}".format(self.port, data)
                 print "[{}] -> {}".format(self.port, data[:100].encode('hex'))
                 try:
                     reload(parser)        
@@ -86,7 +94,7 @@ class Proxy(Thread):
 # Api Pokemon
 # - 104.21.76.139
 
-master_server = Proxy('0.0.0.0', '172.65.247.116', 80, 5555)
+master_server = Proxy('0.0.0.0', '172.65.255.133', 8000, 443)
 master_server.start()
 
 #game_servers = []
